@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTimer } from "./useTimer";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -40,16 +40,7 @@ function App() {
   const { start, pause, resume, reset, remainingTimeMs, timerState } = useTimer(
     durationMs,
     {
-      // onStart: () => {
-      //   setPhases((prev) => {
-      //     const newPhases = [...prev];
-      //     newPhases[phaseIndex] = {
-      //       ...newPhases[phaseIndex],
-      //       status: "running",
-      //     };
-      //     return newPhases;
-      //   });
-      // },
+      onStart: () => {},
       onComplete: () => {
         // when timer completes, advance to next phase
         if (phaseIndex < phases.length - 1) {
@@ -73,29 +64,11 @@ function App() {
     },
   );
 
-  useEffect(() => {
-    setPhases((prev) => {
-      const newPhases = [...prev];
-      newPhases[phaseIndex] = {
-        ...newPhases[phaseIndex],
-        status: timerState,
-      };
-      return newPhases;
-    });
-  }, [timerState]);
-
   const totalDuration = phases.reduce((sum, p) => sum + p.durationMins, 0);
   const getStatusLabel = () => {
     if (timerState === "running") return "RUNNING";
     if (timerState === "paused") return "PAUSED";
     return "READY";
-  };
-
-  const getPhaseStatus = (index: number) => {
-    if (index < phaseIndex) return "completed";
-    if (index === phaseIndex)
-      return timerState === "running" ? "running" : "paused";
-    return "not started";
   };
 
   const deletePhase = (id: number) => {
@@ -117,20 +90,26 @@ function App() {
 
   return (
     <div className="min-h-screen bg-background text-foreground p-8">
-      <div className="text-6xl font-black tracking-tighter text-center">
+      <div className="mb-12 text-center">
         <span
-          className="bg-gradient-to-r from-cyan-400 via-blue-500 to-red-600 bg-clip-text text-transparent drop-shadow-lg animate-pulse"
+          className="inline-block text-8xl font-black tracking-widest"
           style={{
-            textShadow:
-              "0 0 20px rgba(2, 183, 255, 0.84), 0 0 40px rgba(245, 16, 123, 0.3)",
-            fontFamily: "monospace",
-            letterSpacing: "0.1em",
+            background:
+              "linear-gradient(135deg, #00d4ff 0%, #0099ff 25%, #ff00ff 50%, #ff0080 75%, #00d4ff 100%)",
+            backgroundSize: "200% 200%",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+            fontStyle: "italic",
+            transform: "skewX(-20deg) perspective(1000px) rotateY(-5deg)",
+            fontFamily: "'Arial Black', sans-serif",
+            letterSpacing: "-5px",
           }}
         >
           PHASER
         </span>
       </div>
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto" style={{ fontStyle: "italic" }}>
         <Card className="mb-8 bg-card border border-border">
           <CardHeader className="p-8">
             <div className="flex items-center justify-between">
@@ -188,6 +167,7 @@ function App() {
               key={phase.id}
               phase={phase}
               index={index}
+              phaseIndex={phaseIndex}
               timerState={timerState}
               onDelete={deletePhase}
             />
@@ -207,8 +187,66 @@ function App() {
   );
 }
 
-const PhaseCard = ({ phase, index, timerState, onDelete }) => {
-  const currentStatus = phase.status;
+const PhaseCard = ({
+  phase,
+  index,
+  phaseIndex,
+  timerState,
+  onDelete,
+}: {
+  phase: { id: number; name: string; durationMins: number; status: string };
+  index: number;
+  phaseIndex: number;
+  timerState: string;
+  onDelete: (id: number) => void;
+}) => {
+  const getStatusBorderColor = (status: string) => {
+    switch (status) {
+      case "completed":
+        return "border-purple-500/60";
+      case "running":
+        return "border-blue-500/60";
+      case "paused":
+        return "border-yellow-500/60";
+      case "not started":
+        return "border-gray-500/60";
+      default:
+        return "border-border";
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "completed":
+        return "bg-purple-500/80 text-white";
+      case "running":
+        return "bg-blue-500/80 text-white";
+      case "paused":
+        return "bg-yellow-500/80 text-white";
+      case "not started":
+        return "bg-gray-500/80 text-white";
+      default:
+        return "bg-gray-500/80 text-white";
+    }
+  };
+
+  const formatStatusDisplay = (status: string) => {
+    if (status === "not started") return "Not Started";
+    if (status === "completed") return "Completed";
+    return status.charAt(0).toUpperCase() + status.slice(1);
+  };
+
+  const getPhaseStatus = (idx: number) => {
+    if (idx < phaseIndex) return "completed";
+    if (idx === phaseIndex) {
+      if (timerState === "running") return "running";
+      if (timerState === "paused") return "paused";
+      return "not started";
+    }
+    return "not started";
+  };
+
+  const currentStatus = getPhaseStatus(index);
   return (
     <Card
       key={phase.id}
@@ -231,7 +269,7 @@ const PhaseCard = ({ phase, index, timerState, onDelete }) => {
             variant="default"
             className={`rounded-full p-1 w-20 flex justify-center ${getStatusColor(currentStatus)}`}
           >
-            {currentStatus}
+            {formatStatusDisplay(currentStatus)}
           </Badge>
           <button
             onClick={() => onDelete(phase.id)}
@@ -243,36 +281,6 @@ const PhaseCard = ({ phase, index, timerState, onDelete }) => {
       </CardContent>
     </Card>
   );
-};
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "completed":
-      return "bg-purple-500/80 text-white";
-    case "running":
-      return "bg-blue-500/80 text-white";
-    case "paused":
-      return "bg-yellow-500/80 text-white";
-    case "not started":
-      return "bg-gray-500/80 text-white";
-    default:
-      return "bg-gray-500/80 text-white";
-  }
-};
-
-const getStatusBorderColor = (status: string) => {
-  switch (status) {
-    case "completed":
-      return "border-purple-500/60";
-    case "running":
-      return "border-blue-500/60";
-    case "paused":
-      return "border-yellow-500/60";
-    case "not started":
-      return "border-gray-500/60";
-    default:
-      return "border-border";
-  }
 };
 
 const formatTime = (ms: number): string => {
