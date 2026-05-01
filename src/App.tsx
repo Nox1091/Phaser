@@ -1,38 +1,101 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTimer } from "./useTimer";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import "./App.css";
 
+const phaseData = [
+  {
+    id: 1,
+    name: "Background",
+    durationMins: 0.1,
+    status: "not started",
+  },
+  {
+    id: 2,
+    name: "Vector Embedding Storage",
+    durationMins: 0.2,
+    status: "not started",
+  },
+  {
+    id: 3,
+    name: "Search Algorithms",
+    durationMins: 10,
+    status: "not started",
+  },
+  {
+    id: 4,
+    name: "Q&A",
+    durationMins: 5,
+    status: "not started",
+  },
+];
+
 function App() {
-  const [phases, setPhases] = useState([
-    {
-      id: 1,
-      name: "Intro & alignment",
-      durationMins: 5,
-      status: "not started",
-    },
-    { id: 2, name: "Main discussion", durationMins: 20, status: "in progress" },
-    { id: 3, name: "Q&A", durationMins: 10, status: "not started" },
-    {
-      id: 4,
-      name: "Next steps & wrap-up",
-      durationMins: 5,
-      status: "not started",
-    },
-  ]);
+  const [phases, setPhases] = useState(phaseData);
   const [phaseIndex, setPhaseIndex] = useState(0);
   const currentPhase = phases[phaseIndex];
   const durationMs = (currentPhase?.durationMins || 0) * 60 * 1000;
-  const { start, pause, resume, reset, remainingTimeMs, timerState } =
-    useTimer(durationMs);
+  const { start, pause, resume, reset, remainingTimeMs, timerState } = useTimer(
+    durationMs,
+    {
+      // onStart: () => {
+      //   setPhases((prev) => {
+      //     const newPhases = [...prev];
+      //     newPhases[phaseIndex] = {
+      //       ...newPhases[phaseIndex],
+      //       status: "running",
+      //     };
+      //     return newPhases;
+      //   });
+      // },
+      onComplete: () => {
+        // when timer completes, advance to next phase
+        if (phaseIndex < phases.length - 1) {
+          setPhaseIndex(phaseIndex + 1);
+          setPhases((prev) => {
+            const newPhases = [...prev];
+            newPhases[phaseIndex] = {
+              ...newPhases[phaseIndex],
+              status: "completed",
+            };
+            if (phaseIndex + 1 < newPhases.length) {
+              newPhases[phaseIndex + 1] = {
+                ...newPhases[phaseIndex + 1],
+                status: "running",
+              };
+            }
+            return newPhases;
+          });
+        }
+      },
+    },
+  );
+
+  useEffect(() => {
+    setPhases((prev) => {
+      const newPhases = [...prev];
+      newPhases[phaseIndex] = {
+        ...newPhases[phaseIndex],
+        status: timerState,
+      };
+      return newPhases;
+    });
+  }, [timerState]);
 
   const totalDuration = phases.reduce((sum, p) => sum + p.durationMins, 0);
   const getStatusLabel = () => {
     if (timerState === "running") return "RUNNING";
     if (timerState === "paused") return "PAUSED";
     return "READY";
+  };
+
+  const getPhaseStatus = (index: number) => {
+    if (index < phaseIndex) return "completed";
+    if (index === phaseIndex)
+      return timerState === "running" ? "running" : "paused";
+    return "not started";
   };
 
   const deletePhase = (id: number) => {
@@ -54,6 +117,19 @@ function App() {
 
   return (
     <div className="min-h-screen bg-background text-foreground p-8">
+      <div className="text-6xl font-black tracking-tighter text-center">
+        <span
+          className="bg-gradient-to-r from-cyan-400 via-blue-500 to-red-600 bg-clip-text text-transparent drop-shadow-lg animate-pulse"
+          style={{
+            textShadow:
+              "0 0 20px rgba(2, 183, 255, 0.84), 0 0 40px rgba(245, 16, 123, 0.3)",
+            fontFamily: "monospace",
+            letterSpacing: "0.1em",
+          }}
+        >
+          PHASER
+        </span>
+      </div>
       <div className="max-w-2xl mx-auto">
         <Card className="mb-8 bg-card border border-border">
           <CardHeader className="p-8">
@@ -108,34 +184,13 @@ function App() {
 
         <div className="space-y-3 mb-8">
           {phases.map((phase, index) => (
-            <Card
+            <PhaseCard
               key={phase.id}
-              className="bg-card border border-border hover:border-border/80 transition-colors group h-10 p-0"
-            >
-              <CardContent className="p-1 flex items-center justify-between">
-                <div className="flex items-center gap-4 flex-1">
-                  <span className="text-muted-foreground font-medium text-lg w-6 text-center">
-                    {index + 1}
-                  </span>
-                  <span className="text-foreground font-medium">
-                    {phase.name}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <span className="font-semibold">{phase.durationMins}</span>
-                    <span className="text-xs">min</span>
-                  </div>
-                  <button
-                    onClick={() => deletePhase(phase.id)}
-                    className={`p-2 text-muted-foreground hover:text-foreground hover:bg-transparent rounded-md transition-colors opacity-0 group-hover:opacity-100 ${timerState === "running" ? "invisible" : ""}`}
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
-              </CardContent>
-            </Card>
+              phase={phase}
+              index={index}
+              timerState={timerState}
+              onDelete={deletePhase}
+            />
           ))}
         </div>
 
@@ -151,6 +206,74 @@ function App() {
     </div>
   );
 }
+
+const PhaseCard = ({ phase, index, timerState, onDelete }) => {
+  const currentStatus = phase.status;
+  return (
+    <Card
+      key={phase.id}
+      className={`bg-card border hover:border-opacity-80 transition-colors group h-10 p-0 ${getStatusBorderColor(currentStatus)}`}
+    >
+      <CardContent className="p-1 flex items-center justify-between">
+        <div className="flex items-center gap-4 flex-1">
+          <span className="text-muted-foreground font-medium text-lg w-6 text-center">
+            {index + 1}
+          </span>
+          <span className="text-foreground font-medium">{phase.name}</span>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <span className="font-semibold">{phase.durationMins}</span>
+            <span className="text-xs">min</span>
+          </div>
+          <Badge
+            variant="default"
+            className={`rounded-full p-1 w-20 flex justify-center ${getStatusColor(currentStatus)}`}
+          >
+            {currentStatus}
+          </Badge>
+          <button
+            onClick={() => onDelete(phase.id)}
+            className={`p-2 text-muted-foreground hover:text-foreground hover:bg-transparent rounded-md transition-colors opacity-0 group-hover:opacity-100 ${timerState === "running" ? "invisible" : ""}`}
+          >
+            <X size={18} />
+          </button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case "completed":
+      return "bg-purple-500/80 text-white";
+    case "running":
+      return "bg-blue-500/80 text-white";
+    case "paused":
+      return "bg-yellow-500/80 text-white";
+    case "not started":
+      return "bg-gray-500/80 text-white";
+    default:
+      return "bg-gray-500/80 text-white";
+  }
+};
+
+const getStatusBorderColor = (status: string) => {
+  switch (status) {
+    case "completed":
+      return "border-purple-500/60";
+    case "running":
+      return "border-blue-500/60";
+    case "paused":
+      return "border-yellow-500/60";
+    case "not started":
+      return "border-gray-500/60";
+    default:
+      return "border-border";
+  }
+};
 
 const formatTime = (ms: number): string => {
   const totalSeconds = Math.floor(ms / 1000);
