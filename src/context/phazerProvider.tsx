@@ -130,11 +130,17 @@ function phazerReducer(state: PhazerState, action: PhazerAction): PhazerState {
           return p;
         }),
       };
-    case "CLEAR_ALL":
+    case "CLEAR_ALL": {
       return {
-        phases: [],
+        phases: state.phases.map((p) => {
+          return {
+            ...p,
+            status: "not started",
+          };
+        }),
         activePhaseId: null,
       };
+    }
     default:
       return state;
   }

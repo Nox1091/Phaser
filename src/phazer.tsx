@@ -27,9 +27,6 @@ function Phazer() {
     (phase) => phase.status === "complete",
   );
 
-  console.log("phases", phases);
-  console.log("currentPhase", currentActivePhase);
-
   useEvent("start_timer", ({ startTime }: { startTime: number }) => {
     dispatch({ type: "START_MEETING", phaseId: activePhaseId ?? 0, startTime });
   });
