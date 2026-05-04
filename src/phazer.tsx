@@ -3,11 +3,9 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import "./App.css";
-import {
-  usePhazer,
-  type Timer,
-  type TimerStatus,
-} from "./context/phazerProvider";
+import { usePhazer, type Timer } from "./context/phazerProvider";
+import useEvent from "./useEvent";
+import type { TimerStatus } from "./useTimer";
 
 function Phazer() {
   const { timer, phases, activePhaseId, shouldContinue, dispatch } =
@@ -19,7 +17,6 @@ function Phazer() {
     pause,
     resume,
     reset,
-    subscribe,
   } = timer;
   const currentActivePhase =
     activePhaseId !== null
@@ -33,35 +30,44 @@ function Phazer() {
   console.log("phases", phases);
   console.log("currentPhase", currentActivePhase);
 
-  useEffect(() => {
-    const startUnsub = subscribe("active", ({ startTime }) => {
-      dispatch({ type: "START_MEETING" });
+  useEvent("start_timer", ({ startTime }: { startTime: number }) => {
+    dispatch({ type: "START_MEETING", phaseId: activePhaseId ?? 0, startTime });
+  });
+
+  useEvent("pause_timer", ({ elapsedTime }: { elapsedTime: number }) => {
+    dispatch({
+      type: "PAUSE_CURRENT",
+      phaseId: activePhaseId ?? 0,
+      elapsedTime,
     });
+  });
 
-    const pauseUnsub = subscribe("pause", ({ elapsed }) => {
-      dispatch({ type: "PAUSE_CURRENT" });
+  useEvent("resume_timer", ({ startTime }: { startTime: number }) => {
+    dispatch({
+      type: "RESUME_CURRENT",
+      phaseId: activePhaseId ?? 0,
+      startTime,
     });
+  });
 
-    const resumeUnsub = subscribe("resume", () => {
-      dispatch({ type: "RESUME_CURRENT" });
+  useEvent(
+    "end_timer",
+    ({ endTime, elapsedTime }: { endTime: number; elapsedTime: number }) => {
+      dispatch({
+        type: "COMPLETE_CURRENT",
+        phaseId: activePhaseId ?? 0,
+        endTime,
+        elapsedTime,
+      });
+    },
+  );
+
+  useEvent("reset_timer", () => {
+    dispatch({
+      type: "RESET_CURRENT",
+      phaseId: activePhaseId ?? 0,
     });
-
-    return () => {
-      startUnsub();
-      pauseUnsub();
-      resumeUnsub();
-    };
-  }, [subscribe]);
-
-  useEffect(() => {
-    const completeUnsub = subscribe("complete", () => {
-      dispatch({ type: "COMPLETE_CURRENT", phaseId: activePhaseId });
-    });
-
-    return () => {
-      completeUnsub();
-    };
-  }, [activePhaseId]);
+  });
 
   // when timer completes, complete the current phase and move to next
   useEffect(() => {
@@ -111,10 +117,9 @@ function Phazer() {
         <Timer
           timerState={timer}
           onStart={() => {
-            const firstPhase = phases[0];
-            if (firstPhase) {
-              startTimer(firstPhase.durationMins * 60 * 1000);
-            }
+            if (!currentActivePhase)
+              startTimer(phases[0]?.durationMins * 60 * 1000);
+            else startTimer(currentActivePhase.durationMins * 60 * 1000);
           }}
           onPause={() => {
             pause();
@@ -122,8 +127,7 @@ function Phazer() {
           onResume={() => {
             resume();
           }}
-          onReset={() => () => {
-            dispatch({ type: "RESET_PHASE", phaseId: null });
+          onReset={() => {
             reset();
           }}
           onClear={handleClear}
@@ -173,7 +177,7 @@ const Timer = ({
   onReset: () => void;
   onClear: () => void;
 }) => {
-  const { status, timeRemainingMs, subscribe } = timerState;
+  const { status, timeRemainingMs } = timerState;
 
   return (
     <Card className="mb-8 bg-card border border-border">

@@ -1,7 +1,5 @@
-import useTimer from "../useTimer";
+import useTimer, { type TimerStatus } from "../useTimer";
 import { createContext, useContext, useReducer, type ReactNode } from "react";
-
-export type TimerStatus = "active" | "paused" | "complete" | "stopped";
 
 export interface Timer {
   status: TimerStatus;
@@ -28,13 +26,18 @@ type PhazerState = {
 };
 
 type PhazerAction =
-  | { type: "START_MEETING" }
-  | { type: "PAUSE_CURRENT" }
-  | { type: "RESUME_CURRENT" }
-  | { type: "COMPLETE_CURRENT"; phaseId: number }
+  | { type: "START_MEETING"; phaseId: number; startTime: number }
+  | { type: "PAUSE_CURRENT"; phaseId: number; elapsedTime: number }
+  | { type: "RESUME_CURRENT"; phaseId: number; startTime: number }
+  | {
+      type: "COMPLETE_CURRENT";
+      phaseId: number;
+      endTime: number;
+      elapsedTime: number;
+    }
+  | { type: "RESET_CURRENT"; phaseId: number }
   | { type: "ADD_PHASE"; phase: PhaseObject }
   | { type: "DELETE_PHASE"; phaseId: number }
-  | { type: "RESET_PHASE"; phaseId: number | null }
   | { type: "CLEAR_ALL" };
 
 function phazerReducer(state: PhazerState, action: PhazerAction): PhazerState {
@@ -112,19 +115,20 @@ function phazerReducer(state: PhazerState, action: PhazerAction): PhazerState {
         activePhaseId: wasActive ? null : state.activePhaseId,
       };
     }
-    case "RESET_PHASE":
+    case "RESET_CURRENT":
+      console.log("reset triggered: ", { action, state });
       return {
         ...state,
         activePhaseId: action.phaseId,
-        phases: state.phases.map((p) => ({
-          ...p,
-          status:
-            p.id === action.phaseId
-              ? ("active" as const)
-              : p.status === "active"
-                ? ("paused" as const)
-                : p.status,
-        })),
+        phases: state.phases.map((p) => {
+          if (p.id === action.phaseId) {
+            return {
+              ...p,
+              status: "not started",
+            };
+          }
+          return p;
+        }),
       };
     case "CLEAR_ALL":
       return {

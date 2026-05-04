@@ -1,5 +1,7 @@
 import { useCallback, useRef, useState } from "react";
-import type { TimerStatus } from "./context/phazerProvider";
+import eventBus from "./eventBus";
+
+export type TimerStatus = "active" | "paused" | "complete" | "stopped";
 
 export const useTimer = () => {
   const [timeRemainingMs, setTimeRemainingMs] = useState<number>(0);
@@ -10,30 +12,6 @@ export const useTimer = () => {
     pausedTime: 0,
   });
   const intervalRef = useRef<number | null>(null);
-
-  // TODO: move this outside of hook logic
-  const subscribersRef = useRef<Map<string, ((payload: unknown) => void)[]>>(
-    new Map(),
-  );
-
-  // TODO: move this outside of hook logic
-  const emit = useCallback((event, payload) => {
-    subscribersRef.current.get(event)?.forEach((fn) => fn(payload));
-  }, []);
-
-  const subscribe = useCallback((event, fn) => {
-    if (!subscribersRef.current.has(event))
-      subscribersRef.current.set(event, []);
-    subscribersRef.current.get(event).push(fn);
-    return () => {
-      // unsubscribe
-      const fns = subscribersRef.current.get(event) ?? [];
-      subscribersRef.current.set(
-        event,
-        fns.filter((f) => f !== fn),
-      );
-    };
-  }, []);
 
   const clearIntervalRef = useCallback(() => {
     if (intervalRef.current !== null) {
@@ -62,7 +40,7 @@ export const useTimer = () => {
       timeRef.current.pausedTime = 0;
 
       setStatus("active");
-      emit("active", { startTime: timeRef.current.startTime });
+      eventBus.emit("start_timer", { startTime: timeRef.current.startTime });
 
       setTimeRemainingMs(durationMs);
 
@@ -77,7 +55,10 @@ export const useTimer = () => {
         if (clamped === 0) {
           clearIntervalRef();
           setStatus("complete");
-          emit("complete", {});
+          eventBus.emit("end_timer", {
+            endTime: Date.now(),
+            elapsedTime: elapsed,
+          });
         }
       }, 100);
     },
@@ -88,7 +69,7 @@ export const useTimer = () => {
     if (status !== "active") return;
     clearIntervalRef();
     timeRef.current.pausedTime += Date.now() - timeRef.current.startTime;
-    emit("pause", { elapsed: timeRef.current.pausedTime });
+    eventBus.emit("pause_timer", { elapsed: timeRef.current.pausedTime });
     setStatus("paused");
   }, [clearIntervalRef, status]);
 
@@ -97,7 +78,7 @@ export const useTimer = () => {
 
     timeRef.current.startTime = Date.now();
     setStatus("active");
-    emit("resume", { startTime: timeRef.current.startTime });
+    eventBus.emit("resume_timer", { startTime: timeRef.current.startTime });
 
     intervalRef.current = setInterval(() => {
       const elapsed =
@@ -110,7 +91,10 @@ export const useTimer = () => {
       if (clamped === 0) {
         clearIntervalRef();
         setStatus("complete");
-        emit("complete", {});
+        eventBus.emit("end_timer", {
+          endTime: Date.now(),
+          elapsedTime: elapsed,
+        });
       }
     }, 100);
   }, [clearIntervalRef, status]);
@@ -121,7 +105,7 @@ export const useTimer = () => {
     timeRef.current.pausedTime = 0;
     setTimeRemainingMs(durationRef.current);
     setStatus("stopped");
-    emit("reset", {});
+    eventBus.emit("reset_timer", {});
   }, [clearIntervalRef]);
 
   const clear = useCallback(() => {
@@ -131,7 +115,7 @@ export const useTimer = () => {
     timeRef.current.pausedTime = 0;
     setTimeRemainingMs(0);
     setStatus("stopped");
-    emit("clear", {});
+    eventBus.emit("clear_timer", {});
   }, [clearIntervalRef]);
 
   return {
@@ -141,7 +125,7 @@ export const useTimer = () => {
     resume,
     reset,
     clear,
-    subscribe,
+    subscribe: eventBus.subscribe,
     timeRemainingMs,
     status,
   };
