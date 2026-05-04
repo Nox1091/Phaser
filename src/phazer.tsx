@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
@@ -6,6 +6,7 @@ import "./App.css";
 import { usePhazer, type Timer } from "./context/phazerProvider";
 import useEvent from "./useEvent";
 import type { TimerStatus } from "./useTimer";
+import { Input } from "./components/ui/input";
 
 function Phazer() {
   const { timer, phases, activePhaseId, shouldContinue, dispatch } =
@@ -109,7 +110,6 @@ function Phazer() {
   return (
     <div className="min-h-screen bg-background text-foreground p-8">
       <Title text="phaZer" />
-      <div>Moo - {activePhaseId}</div>
       <div className="max-w-2xl mx-auto" style={{ fontStyle: "italic" }}>
         <Timer
           timerState={timer}
@@ -269,40 +269,30 @@ const PhaseCard = ({
   timerState: Timer;
   onDelete: (id: number) => void;
 }) => {
-  const getStatusBorderColor = (status: string) => {
-    switch (status) {
-      case "complete":
-        return "border-purple-500/60";
-      case "active":
-        return "border-blue-500/60";
-      case "paused":
-        return "border-yellow-500/60";
-      case "not started":
-        return "border-gray-500/60";
-      default:
-        return "border-border";
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "complete":
-        return "bg-purple-500/80 text-white";
-      case "active":
-        return "bg-blue-500/80 text-white";
-      case "paused":
-        return "bg-yellow-500/80 text-white";
-      case "not started":
-        return "bg-gray-500/80 text-white";
-      default:
-        return "bg-gray-500/80 text-white";
-    }
-  };
+  const [isEditing, setIsEditing] = useState(false);
+  const [name, setName] = useState("New Phase");
+  const { dispatch } = usePhazer();
 
   const formatStatusDisplay = (status: string) => {
     if (status === "not started") return "Not Started";
     if (status === "complete") return "Complete";
     return status?.charAt(0).toUpperCase() + status?.slice(1);
+  };
+
+  const toggleEdit = (event: Event) => {
+    event.stopPropagation();
+    setIsEditing(!isEditing);
+  };
+
+  const handleInput = (event: Event) => {
+    setName(event.target.value);
+
+    // TODO: We'll optimize this so we're not updating
+    dispatch({
+      type: "UPDATE_PHASE",
+      phaseId: phase.id,
+      name: event.target.value,
+    });
   };
 
   return (
@@ -315,7 +305,20 @@ const PhaseCard = ({
           <span className="text-muted-foreground font-medium text-lg w-6 text-center">
             {index + 1}
           </span>
-          <span className="text-foreground font-medium">{phase.name}</span>
+          <span className="text-foreground font-medium">
+            {isEditing ? (
+              <Input
+                autoFocus
+                onFocus={() => setIsEditing(true)}
+                onBlur={() => setIsEditing(false)}
+                className="border-none dark:bg-transparent focus-visible:ring-0"
+                placeholder={name}
+                onChange={handleInput}
+              />
+            ) : (
+              <span onClick={toggleEdit}>{name}</span>
+            )}
+          </span>
         </div>
 
         <div className="flex items-center gap-4">
@@ -339,6 +342,36 @@ const PhaseCard = ({
       </CardContent>
     </Card>
   );
+};
+
+const getStatusBorderColor = (status: string) => {
+  switch (status) {
+    case "complete":
+      return "border-purple-500/60";
+    case "active":
+      return "border-blue-500/60";
+    case "paused":
+      return "border-yellow-500/60";
+    case "not started":
+      return "border-gray-500/60";
+    default:
+      return "border-border";
+  }
+};
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case "complete":
+      return "bg-purple-500/80 text-white";
+    case "active":
+      return "bg-blue-500/80 text-white";
+    case "paused":
+      return "bg-yellow-500/80 text-white";
+    case "not started":
+      return "bg-gray-500/80 text-white";
+    default:
+      return "bg-gray-500/80 text-white";
+  }
 };
 
 const Title = ({ text }: { text: string }) => (

@@ -37,6 +37,13 @@ type PhazerAction =
     }
   | { type: "RESET_CURRENT"; phaseId: number }
   | { type: "ADD_PHASE"; phase: PhaseObject }
+  | {
+      type: "UPDATE_PHASE";
+      phaseId: number;
+      name?: PhaseObject["name"];
+      durationMins?: PhaseObject["durationMins"];
+      status?: PhaseObject["status"];
+    }
   | { type: "DELETE_PHASE"; phaseId: number }
   | { type: "CLEAR_ALL" };
 
@@ -105,6 +112,21 @@ function phazerReducer(state: PhazerState, action: PhazerAction): PhazerState {
         ...state,
         phases: [...state.phases, action.phase],
       };
+    case "UPDATE_PHASE": {
+      const nextPhases = state.phases.map((p) => {
+        if (p.id === action.phaseId) {
+          p.name = action.name || p.name;
+          p.durationMins = action.durationMins || p.durationMins;
+          p.status = action.status || p.status;
+        }
+        return p;
+      });
+      console.log("next state - phase update", nextPhases);
+      return {
+        ...state,
+        phases: [...nextPhases],
+      };
+    }
     case "DELETE_PHASE": {
       const filteredPhases = state.phases.filter(
         (p) => p.id !== action.phaseId,
