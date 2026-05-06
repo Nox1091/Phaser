@@ -7,6 +7,7 @@ import { usePhazer, type Timer } from "./context/phazerProvider";
 import useEvent from "./useEvent";
 import type { TimerStatus } from "./useTimer";
 import { Input } from "./components/ui/input";
+import Logo from "./assets/logo.svg?react";
 
 function Phazer() {
   const { timer, phases, activePhaseId, shouldContinue, dispatch } =
@@ -181,7 +182,7 @@ const Timer = ({
       <CardHeader className="p-8">
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <div className="text-7xl font-black tracking-tighter text-foreground font-mono">
+            <div className="text-7xl font-black tracking-tighter text-foreground ">
               {formatTime(timeRemainingMs)}
             </div>
           </div>
@@ -349,7 +350,7 @@ const getStatusBorderColor = (status: string) => {
     case "complete":
       return "border-purple-500/60";
     case "active":
-      return "border-blue-500/60";
+      return "border-active";
     case "paused":
       return "border-yellow-500/60";
     case "not started":
@@ -364,7 +365,7 @@ const getStatusColor = (status: string) => {
     case "complete":
       return "bg-purple-500/80 text-white";
     case "active":
-      return "bg-blue-500/80 text-white";
+      return "bg-active text-white";
     case "paused":
       return "bg-yellow-500/80 text-white";
     case "not started":
@@ -375,23 +376,25 @@ const getStatusColor = (status: string) => {
 };
 
 const Title = ({ text }: { text: string }) => (
-  <div className="mb-12 text-center">
-    <span
-      className="inline-block text-8xl font-black tracking-widest"
-      style={{
-        background:
-          "linear-gradient(135deg, #00d4ff 0%, #0099ff 25%, #ff00ff 50%, #ff0080 75%, #00d4ff 100%)",
-        backgroundSize: "200% 200%",
-        WebkitBackgroundClip: "text",
-        WebkitTextFillColor: "transparent",
-        backgroundClip: "text",
-        fontStyle: "italic",
-        transform: "skewX(-20deg) perspective(1000px) rotateY(-5deg)",
-        fontFamily: "'Arial Black', sans-serif",
-        letterSpacing: "-5px",
-      }}
-    >
-      {text}
+  <div className="mb-4 text-center">
+    <span className="inline-block text-8xl font-black tracking-widest">
+      <span className="flex flex-row items-center ">
+        <Logo className="mr-10" width={100} height={100} />
+        <p
+          style={{
+            background:
+              "linear-gradient(135deg, #00d4ff 0%, #0099ff 25%, #ff00ff 50%, #ff0080 75%, #00d4ff 100%)",
+            backgroundSize: "185% 185%",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+            letterSpacing: "-5px",
+            transform: "skewX(-20deg) perspective(1000px) rotateY(-5deg)",
+          }}
+        >
+          {text}
+        </p>
+      </span>
     </span>
   </div>
 );

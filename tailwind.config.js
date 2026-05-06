@@ -4,8 +4,12 @@ export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
+      fontFamily: {
+        hackernoon: ["Hackernoon", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
+        active: "hsl(var(--active) / <alpha-value>)",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
@@ -37,6 +41,9 @@ export default {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+        },
+        active: {
+          500: "hsl(var(--active))",
         },
       },
       borderRadius: {

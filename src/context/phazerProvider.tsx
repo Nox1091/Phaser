@@ -121,7 +121,6 @@ function phazerReducer(state: PhazerState, action: PhazerAction): PhazerState {
         }
         return p;
       });
-      console.log("next state - phase update", nextPhases);
       return {
         ...state,
         phases: [...nextPhases],

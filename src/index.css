@@ -3,6 +3,15 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 
+@font-face {
+  font-family: "Hackernoon";
+  src: url("/fonts/HackerNoonV1-Regular.otf") format("opentype"),
+       url("/fonts/HackerNoonV1-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --background: 0 0% 100%;
   --foreground: 0 0% 3.6%;
@@ -21,6 +30,8 @@
 
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 100%;
+
+  --active: 300 100% 50%;
 
   --border: 0 0% 89.8%;
   --input: 0 0% 89.8%;
@@ -76,6 +87,8 @@
   --input: 0 0% 14.9%;
   --ring: 0 0% 83.1%;
 
+  --active: 300 100% 50%;
+
   --primary: 0 84.2% 60.2%;
   --primary-foreground: 0 0% 3.6%;
   --secondary: 0 0% 14.9%;
@@ -96,6 +109,7 @@
 
 body {
   margin: 0;
+  font-family: "Hackernoon", sans-serif;
 }
 
 h1,
@@ -161,6 +175,7 @@ code {
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
+  --color-active: var(--active);
   --color-destructive: var(--destructive);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
@@ -183,11 +198,13 @@ code {
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --color-purple-500: oklch(62.733% 0.30691 316.377)
 }
 
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
+  --foo: oklch(62.733% 0.30691 316.377);
   --card: oklch(0.205 0 0);
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
@@ -210,6 +227,7 @@ code {
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
   --sidebar: oklch(0.205 0 0);
+  --active: oklch(63.272% 0.26285 348.784);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
   --sidebar-primary-foreground: oklch(0.985 0 0);
