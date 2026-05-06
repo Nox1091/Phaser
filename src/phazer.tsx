@@ -103,7 +103,7 @@ function Phazer() {
         id: newId,
         name: `Phase ${newId}`,
         durationMins: 5,
-        status: "not started",
+        status: "pending",
       },
     });
   };
@@ -275,7 +275,7 @@ const PhaseCard = ({
   const { dispatch } = usePhazer();
 
   const formatStatusDisplay = (status: string) => {
-    if (status === "not started") return "Not Started";
+    if (status === "pending") return "Pending";
     if (status === "complete") return "Complete";
     return status?.charAt(0).toUpperCase() + status?.slice(1);
   };
@@ -329,7 +329,7 @@ const PhaseCard = ({
           </div>
           <Badge
             variant="default"
-            className={`rounded-full p-1 w-20 flex justify-center ${getStatusColor(phase.status)}`}
+            className={`rounded-full p-1 w-24 flex justify-center ${getStatusColor(phase.status)}`}
           >
             {formatStatusDisplay(phase.status)}
           </Badge>
@@ -353,7 +353,7 @@ const getStatusBorderColor = (status: string) => {
       return "border-active";
     case "paused":
       return "border-yellow-500/60";
-    case "not started":
+    case "pending":
       return "border-gray-500/60";
     default:
       return "border-border";
@@ -368,7 +368,7 @@ const getStatusColor = (status: string) => {
       return "bg-active text-white";
     case "paused":
       return "bg-yellow-500/80 text-white";
-    case "not started":
+    case "pending":
       return "bg-gray-500/80 text-white";
     default:
       return "bg-gray-500/80 text-white";

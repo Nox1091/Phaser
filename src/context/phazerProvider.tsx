@@ -16,7 +16,7 @@ export interface PhaseObject {
   id: number;
   name: string;
   durationMins: number; // minutes
-  status: "not started" | "active" | "paused" | "complete";
+  status: "pending" | "active" | "paused" | "complete";
 }
 
 type PhazerState = {
@@ -145,7 +145,7 @@ function phazerReducer(state: PhazerState, action: PhazerAction): PhazerState {
           if (p.id === action.phaseId) {
             return {
               ...p,
-              status: "not started",
+              status: "pending",
             };
           }
           return p;
@@ -156,7 +156,7 @@ function phazerReducer(state: PhazerState, action: PhazerAction): PhazerState {
         phases: state.phases.map((p) => {
           return {
             ...p,
-            status: "not started",
+            status: "pending",
           };
         }),
         activePhaseId: null,
@@ -181,25 +181,25 @@ const phaseData = [
     id: 1,
     name: "Background",
     durationMins: 0.1,
-    status: "not started" as const,
+    status: "pending" as const,
   },
   {
     id: 2,
     name: "Vector Embedding Storage",
     durationMins: 0.2,
-    status: "not started" as const,
+    status: "pending" as const,
   },
   {
     id: 3,
     name: "Search Algorithms",
     durationMins: 0.05,
-    status: "not started" as const,
+    status: "pending" as const,
   },
   {
     id: 4,
     name: "Q&A",
     durationMins: 0.15,
-    status: "not started" as const,
+    status: "pending" as const,
   },
 ];
 
