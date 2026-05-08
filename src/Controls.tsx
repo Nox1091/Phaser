@@ -1,4 +1,5 @@
 import type { TimerStatus } from "./useTimer";
+import { ActionButton } from "./components/actionButton";
 
 const Controls = ({
   status,
@@ -22,39 +23,36 @@ const Controls = ({
   return (
     <div className="flex flex-col gap-2">
       {status === "active" || status === "complete" ? (
-        <button
+        <ActionButton
+          text="Pause"
           onClick={onPause}
-          className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors shadow-lg"
-        >
-          Pause
-        </button>
+          className="px-6 bg-[#009eff] hover:bg-blue-600 text-white"
+        />
       ) : status === "paused" ? (
-        <button
+        <ActionButton
+          text="Resume"
           onClick={onResume}
-          className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors shadow-lg"
-        >
-          Resume
-        </button>
+          className="bg-[#009eff] hover:bg-blue-600 text-white"
+        />
       ) : (
-        <button
+        <ActionButton
+          text="Start"
           onClick={onStart}
-          className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors shadow-lg"
-        >
-          Start meeting
-        </button>
+          className="bg-[#009eff] hover:bg-blue-600 text-white"
+        />
       )}
-      <button
+
+      <ActionButton
+        text="Reset"
         onClick={onReset}
-        className="px-8 py-3 border border-border text-foreground rounded-lg font-semibold hover:bg-muted/50 transition-colors"
-      >
-        Reset
-      </button>
-      <button
+        className="bg-[#a436ff] hover:bg-[#7e14d5] border border-border text-foreground"
+      />
+
+      <ActionButton
+        text="Clear"
         onClick={handleClear}
-        className="px-8 py-3 border border-border text-foreground rounded-lg font-semibold hover:bg-muted/50 transition-colors"
-      >
-        Clear
-      </button>
+        className="bg-[#ec00ff] hover:bg-[#a804b5] border border-border text-foreground"
+      />
     </div>
   );
 };
