@@ -1,5 +1,5 @@
-import { type TimerStatus } from "../useTimer";
 import { createContext, useContext, useReducer, type ReactNode } from "react";
+import { type TimerStatus } from "../useTimer";
 
 export interface Timer {
   status: TimerStatus;

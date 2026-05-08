@@ -1,13 +1,8 @@
 import "./app.css";
-import { PhazerProvider } from "./context/phazerProvider";
 import Phazer from "./Phazer";
 
 function App() {
-  return (
-    <PhazerProvider>
-      <Phazer />
-    </PhazerProvider>
-  );
+  return <Phazer />;
 }
 
 export default App;

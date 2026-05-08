@@ -1,13 +1,28 @@
 import { useEffect } from "react";
 import { Card, CardHeader } from "@/components/ui/card";
 import "./App.css";
-import { usePhazer, type Timer } from "./context/phazerProvider";
+import {
+  PhazerProvider,
+  usePhazer,
+  type Timer,
+} from "./context/phazerProvider";
 import { useTimer, type TimerStatus } from "./useTimer";
 import Logo from "./assets/logo.svg?react";
 import Controls from "./Controls";
 import PhaseManager from "./PhaseManager";
 
 function Phazer() {
+  return (
+    <div className="min-h-screen bg-background text-foreground p-8">
+      <Title text="phaZer" />
+      <PhazerProvider>
+        <Content />
+      </PhazerProvider>
+    </div>
+  );
+}
+
+const Content = () => {
   const {
     phases,
     activePhaseId,
@@ -47,33 +62,30 @@ function Phazer() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-8">
-      <Title text="phaZer" />
-      <div className="max-w-2xl mx-auto" style={{ fontStyle: "italic" }}>
-        <Timer
-          status={status}
-          timeRemainingMs={timeRemainingMs}
-          onStart={() => {
-            if (!currentActivePhase)
-              startTimer(phases[0]?.durationMins * 60 * 1000);
-            else startTimer(currentActivePhase.durationMins * 60 * 1000);
-          }}
-          onPause={() => {
-            pause();
-          }}
-          onResume={() => {
-            resume();
-          }}
-          onReset={() => {
-            reset();
-          }}
-          onClear={handleClear}
-        />
-        <PhaseManager clearTimer={clearTimer} timerStatus={status} />
-      </div>
+    <div className="max-w-2xl mx-auto" style={{ fontStyle: "italic" }}>
+      <Timer
+        status={status}
+        timeRemainingMs={timeRemainingMs}
+        onStart={() => {
+          if (!currentActivePhase)
+            startTimer(phases[0]?.durationMins * 60 * 1000);
+          else startTimer(currentActivePhase.durationMins * 60 * 1000);
+        }}
+        onPause={() => {
+          pause();
+        }}
+        onResume={() => {
+          resume();
+        }}
+        onReset={() => {
+          reset();
+        }}
+        onClear={handleClear}
+      />
+      <PhaseManager clearTimer={clearTimer} timerStatus={status} />
     </div>
   );
-}
+};
 
 const Timer = ({
   status,
