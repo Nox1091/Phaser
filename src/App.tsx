@@ -1,6 +1,6 @@
 import "./app.css";
 import { PhazerProvider } from "./context/phazerProvider";
-import Phazer from "./phazer";
+import Phazer from "./Phazer";
 
 function App() {
   return (
