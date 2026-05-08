@@ -14,7 +14,7 @@ export function ActionButton({
   return (
     <Button
       onClick={onClick}
-      className={`px-4 py-3 rounded-lg font-semibold transition-colors shadow-lg max-w-[100px] ${className}`}
+      className={`px-4 py-3 rounded-lg font-semibold transition-colors shadow-lg min-w-[110px] ${className}`}
     >
       {text}
     </Button>

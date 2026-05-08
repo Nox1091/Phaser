@@ -105,7 +105,7 @@ const Timer = ({
   onClear: () => void;
 }) => {
   return (
-    <Card className="mb-8 bg-card border border-border">
+    <Card className="mb-8 p-1 bg-card border border-border">
       <CardHeader className="p-8">
         <div className="flex items-center justify-between">
           <div className="flex-1">
