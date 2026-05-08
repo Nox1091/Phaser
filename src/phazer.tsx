@@ -2,14 +2,19 @@ import { useEffect } from "react";
 import { Card, CardHeader } from "@/components/ui/card";
 import "./App.css";
 import { usePhazer, type Timer } from "./context/phazerProvider";
-import useEvent from "./useEvent";
 import { useTimer, type TimerStatus } from "./useTimer";
 import Logo from "./assets/logo.svg?react";
 import Controls from "./Controls";
 import PhaseManager from "./PhaseManager";
 
 function Phazer() {
-  const { phases, activePhaseId, shouldContinue, dispatch } = usePhazer();
+  const {
+    phases,
+    activePhaseId,
+    shouldContinue,
+    currentActivePhase,
+    dispatch,
+  } = usePhazer();
   const {
     status,
     timeRemainingMs,
@@ -19,53 +24,10 @@ function Phazer() {
     resume,
     reset,
   } = useTimer();
-  const currentActivePhase =
-    activePhaseId !== null
-      ? phases.find((phase) => phase.id === activePhaseId)
-      : null;
 
   const allPhasesComplete = phases.every(
     (phase) => phase.status === "complete",
   );
-
-  useEvent("start_timer", ({ startTime }: { startTime: number }) => {
-    dispatch({ type: "START_MEETING", phaseId: activePhaseId ?? 0, startTime });
-  });
-
-  useEvent("pause_timer", ({ elapsedTime }: { elapsedTime: number }) => {
-    dispatch({
-      type: "PAUSE_CURRENT",
-      phaseId: activePhaseId ?? 0,
-      elapsedTime,
-    });
-  });
-
-  useEvent("resume_timer", ({ startTime }: { startTime: number }) => {
-    dispatch({
-      type: "RESUME_CURRENT",
-      phaseId: activePhaseId ?? 0,
-      startTime,
-    });
-  });
-
-  useEvent(
-    "end_timer",
-    ({ endTime, elapsedTime }: { endTime: number; elapsedTime: number }) => {
-      dispatch({
-        type: "COMPLETE_CURRENT",
-        phaseId: activePhaseId ?? 0,
-        endTime,
-        elapsedTime,
-      });
-    },
-  );
-
-  useEvent("reset_timer", () => {
-    dispatch({
-      type: "RESET_CURRENT",
-      phaseId: activePhaseId ?? 0,
-    });
-  });
 
   // when timer completes, complete the current phase and move to next
   useEffect(() => {

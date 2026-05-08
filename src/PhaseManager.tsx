@@ -5,6 +5,7 @@ import { Input } from "./components/ui/input";
 import { usePhazer } from "./context/phazerProvider";
 import { type TimerStatus } from "./useTimer";
 import { X } from "lucide-react";
+import useEvent from "./useEvent";
 
 const PhaseManager = ({
   clearTimer,
@@ -13,8 +14,49 @@ const PhaseManager = ({
   clearTimer: () => void;
   timerStatus: TimerStatus;
 }) => {
-  const { dispatch, phases } = usePhazer();
+  const { dispatch, phases, activePhaseId } = usePhazer();
   const totalDuration = phases.reduce((sum, p) => sum + p.durationMins, 0);
+
+  //#region Register Timer Event Handlers to Service Bus
+  useEvent("start_timer", ({ startTime }: { startTime: number }) => {
+    dispatch({ type: "START_MEETING", phaseId: activePhaseId ?? 0, startTime });
+  });
+
+  useEvent("pause_timer", ({ elapsedTime }: { elapsedTime: number }) => {
+    dispatch({
+      type: "PAUSE_CURRENT",
+      phaseId: activePhaseId ?? 0,
+      elapsedTime,
+    });
+  });
+
+  useEvent("resume_timer", ({ startTime }: { startTime: number }) => {
+    dispatch({
+      type: "RESUME_CURRENT",
+      phaseId: activePhaseId ?? 0,
+      startTime,
+    });
+  });
+
+  useEvent(
+    "end_timer",
+    ({ endTime, elapsedTime }: { endTime: number; elapsedTime: number }) => {
+      dispatch({
+        type: "COMPLETE_CURRENT",
+        phaseId: activePhaseId ?? 0,
+        endTime,
+        elapsedTime,
+      });
+    },
+  );
+
+  useEvent("reset_timer", () => {
+    dispatch({
+      type: "RESET_CURRENT",
+      phaseId: activePhaseId ?? 0,
+    });
+  });
+  //#endregion
 
   const deletePhase = (id: number) => {
     const deletedPhase = phases.find((phase) => phase.id === id);
@@ -126,7 +168,9 @@ const PhaseCard = ({
                 onChange={handleInput}
               />
             ) : (
-              <span onClick={toggleEdit}>{name}</span>
+              <span className={"w-[75%] truncate"} onClick={toggleEdit}>
+                {name}
+              </span>
             )}
           </span>
         </div>

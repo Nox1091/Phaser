@@ -1,4 +1,4 @@
-import useTimer, { type TimerStatus } from "../useTimer";
+import { type TimerStatus } from "../useTimer";
 import { createContext, useContext, useReducer, type ReactNode } from "react";
 
 export interface Timer {
@@ -168,52 +168,70 @@ function phazerReducer(state: PhazerState, action: PhazerAction): PhazerState {
 }
 
 interface PhazerContextValue {
-  timer: Timer;
   phases: PhaseObject[];
   activePhaseId: number | null;
   shouldContinue?: boolean;
+  currentActivePhase: PhaseObject | null | undefined;
   dispatch: React.Dispatch<PhazerAction>;
 }
 
-// Temp data during testing
-const phaseData = [
-  {
-    id: 1,
-    name: "Background",
-    durationMins: 0.1,
-    status: "pending" as const,
-  },
-  {
-    id: 2,
-    name: "Vector Embedding Storage",
-    durationMins: 0.2,
-    status: "pending" as const,
-  },
-  {
-    id: 3,
-    name: "Search Algorithms",
-    durationMins: 0.05,
-    status: "pending" as const,
-  },
-  {
-    id: 4,
-    name: "Q&A",
-    durationMins: 0.15,
-    status: "pending" as const,
-  },
-];
+// Temp data for testing
+// const phaseData = [
+//   {
+//     id: 1,
+//     name: "Background",
+//     durationMins: 0.1,
+//     status: "pending" as const,
+//   },
+//   {
+//     id: 2,
+//     name: "Vector Embedding Storage",
+//     durationMins: 0.2,
+//     status: "pending" as const,
+//   },
+//   {
+//     id: 3,
+//     name: "Search Algorithms",
+//     durationMins: 0.05,
+//     status: "pending" as const,
+//   },
+//   {
+//     id: 4,
+//     name: "Q&A",
+//     durationMins: 0.15,
+//     status: "pending" as const,
+//   },
+// ];
 
 const PhazerContext = createContext<PhazerContextValue | null>(null);
 
 export function PhazerProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(phazerReducer, {
-    phases: phaseData,
+    phases: [
+      {
+        id: 1,
+        name: "New Phase",
+        durationMins: 0.1,
+        status: "pending" as const,
+      },
+      {
+        id: 2,
+        name: "New Phase",
+        durationMins: 0.15,
+        status: "pending" as const,
+      },
+    ],
     activePhaseId: null,
     shouldContinue: false,
   });
 
+  const currentActivePhase =
+    state.activePhaseId !== null
+      ? state.phases.find((phase) => phase.id === state.activePhaseId)
+      : null;
+
   return (
-    <PhazerContext.Provider value={{ ...state, dispatch }}>
+    <PhazerContext.Provider value={{ ...state, currentActivePhase, dispatch }}>
       {children}
     </PhazerContext.Provider>
   );
