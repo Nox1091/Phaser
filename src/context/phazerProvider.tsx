@@ -206,7 +206,6 @@ const phaseData = [
 const PhazerContext = createContext<PhazerContextValue | null>(null);
 
 export function PhazerProvider({ children }: { children: ReactNode }) {
-  const timer = useTimer();
   const [state, dispatch] = useReducer(phazerReducer, {
     phases: phaseData,
     activePhaseId: null,
@@ -214,7 +213,7 @@ export function PhazerProvider({ children }: { children: ReactNode }) {
   });
 
   return (
-    <PhazerContext.Provider value={{ timer, ...state, dispatch }}>
+    <PhazerContext.Provider value={{ ...state, dispatch }}>
       {children}
     </PhazerContext.Provider>
   );

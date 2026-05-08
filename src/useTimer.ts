@@ -60,7 +60,7 @@ export const useTimer = () => {
             elapsedTime: elapsed,
           });
         }
-      }, 100);
+      }, 300);
     },
     [clearIntervalRef],
   );

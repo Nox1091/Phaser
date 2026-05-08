@@ -5,21 +5,21 @@ import { X } from "lucide-react";
 import "./App.css";
 import { usePhazer, type Timer } from "./context/phazerProvider";
 import useEvent from "./useEvent";
-import type { TimerStatus } from "./useTimer";
+import { useTimer, type TimerStatus } from "./useTimer";
 import { Input } from "./components/ui/input";
 import Logo from "./assets/logo.svg?react";
 
 function Phazer() {
-  const { timer, phases, activePhaseId, shouldContinue, dispatch } =
-    usePhazer();
+  const { phases, activePhaseId, shouldContinue, dispatch } = usePhazer();
   const {
     status,
+    timeRemainingMs,
     start: startTimer,
     clear: clearTimer,
     pause,
     resume,
     reset,
-  } = timer;
+  } = useTimer();
   const currentActivePhase =
     activePhaseId !== null
       ? phases.find((phase) => phase.id === activePhaseId)
@@ -74,7 +74,7 @@ function Phazer() {
 
     if (status === "complete" && shouldContinue) {
       const nextPhase = phases.find((p) => p.id === activePhaseId);
-      timer.start((nextPhase?.durationMins || 0) * 60 * 1000 || 0);
+      startTimer((nextPhase?.durationMins || 0) * 60 * 1000 || 0);
     }
   }, [status, activePhaseId]);
 
@@ -113,7 +113,8 @@ function Phazer() {
       <Title text="phaZer" />
       <div className="max-w-2xl mx-auto" style={{ fontStyle: "italic" }}>
         <Timer
-          timerState={timer}
+          status={status}
+          timeRemainingMs={timeRemainingMs}
           onStart={() => {
             if (!currentActivePhase)
               startTimer(phases[0]?.durationMins * 60 * 1000);
@@ -141,7 +142,7 @@ function Phazer() {
               key={phase.id}
               phase={phase}
               index={index}
-              timerState={timer}
+              status={status}
               onDelete={deletePhase}
             />
           ))}
@@ -161,22 +162,22 @@ function Phazer() {
 }
 
 const Timer = ({
-  timerState,
+  status,
+  timeRemainingMs,
   onStart,
   onPause,
   onResume,
   onReset,
   onClear,
 }: {
-  timerState: Timer;
+  status: TimerStatus;
+  timeRemainingMs: number;
   onStart: () => void;
   onPause: () => void;
   onResume: () => void;
   onReset: () => void;
   onClear: () => void;
 }) => {
-  const { status, timeRemainingMs } = timerState;
-
   return (
     <Card className="mb-8 bg-card border border-border">
       <CardHeader className="p-8">
@@ -187,7 +188,7 @@ const Timer = ({
             </div>
           </div>
           <Controls
-            timerStatus={status}
+            status={status}
             onStart={onStart}
             onPause={onPause}
             onResume={onResume}
@@ -201,14 +202,14 @@ const Timer = ({
 };
 
 const Controls = ({
-  timerStatus,
+  status,
   onStart,
   onPause,
   onResume,
   onReset,
   onClear,
 }: {
-  timerStatus: TimerStatus;
+  status: TimerStatus;
   onStart: () => void;
   onPause: () => void;
   onResume: () => void;
@@ -221,14 +222,14 @@ const Controls = ({
 
   return (
     <div className="flex flex-col gap-2">
-      {timerStatus === "active" || timerStatus === "complete" ? (
+      {status === "active" || status === "complete" ? (
         <button
           onClick={onPause}
           className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors shadow-lg"
         >
           Pause
         </button>
-      ) : timerStatus === "paused" ? (
+      ) : status === "paused" ? (
         <button
           onClick={onResume}
           className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors shadow-lg"
@@ -262,12 +263,12 @@ const Controls = ({
 const PhaseCard = ({
   phase,
   index,
-  timerState,
+  status,
   onDelete,
 }: {
   phase: { id: number; name: string; durationMins: number; status: string };
   index: number;
-  timerState: Timer;
+  status: TimerStatus;
   onDelete: (id: number) => void;
 }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -335,7 +336,7 @@ const PhaseCard = ({
           </Badge>
           <button
             onClick={() => onDelete(phase.id)}
-            className={`p-2 text-muted-foreground hover:text-foreground hover:bg-transparent rounded-md transition-colors opacity-0 group-hover:opacity-100 ${timerState.status === "active" ? "invisible" : ""}`}
+            className={`p-2 text-muted-foreground hover:text-foreground hover:bg-transparent rounded-md transition-colors opacity-0 group-hover:opacity-100 ${status === "active" ? "invisible" : ""}`}
           >
             <X size={18} />
           </button>
