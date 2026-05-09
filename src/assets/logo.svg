@@ -3,7 +3,7 @@
   <desc>Pixelated circular clock logo for phaZer meeting timer app</desc>
  
   <!-- dark face -->
-    <rect x="0" y="0" width="64" height="64" rx="12" fill="#0D001A"/>
+    <rect x="0" y="0" width="64" height="64" rx="12" fill="#0a0a0a"/>
  
   <!-- outer pixel ring — 12 squares at clock positions -->
   <!-- 12 o'clock -->
