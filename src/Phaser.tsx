@@ -61,11 +61,17 @@ const Content = () => {
     dispatch({ type: "CLEAR_ALL" });
   };
 
+  // TODO: Move to 'useProgress' hook
+  const currentDurationMs = (currentActivePhase?.durationMins || 0) * 60 * 1000;
+  const currentProgressMs = currentDurationMs - timeRemainingMs;
+  const progressPercent = (currentProgressMs / currentDurationMs) * 100;
+
   return (
     <div className="max-w-2xl mx-auto" style={{ fontStyle: "italic" }}>
       <Timer
         status={status}
         timeRemainingMs={timeRemainingMs}
+        progressPercent={progressPercent}
         onStart={() => {
           if (!currentActivePhase)
             startTimer(phases[0]?.durationMins * 60 * 1000);
@@ -90,6 +96,7 @@ const Content = () => {
 const Timer = ({
   status,
   timeRemainingMs,
+  progressPercent,
   onStart,
   onPause,
   onResume,
@@ -98,6 +105,7 @@ const Timer = ({
 }: {
   status: TimerStatus;
   timeRemainingMs: number;
+  progressPercent: number;
   onStart: () => void;
   onPause: () => void;
   onResume: () => void;
@@ -105,25 +113,42 @@ const Timer = ({
   onClear: () => void;
 }) => {
   return (
-    <Card className="mb-8 p-1 bg-card border border-border">
-      <CardHeader className="p-8">
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <div className="text-7xl font-black tracking-tighter text-foreground ">
-              {formatTime(timeRemainingMs)}
+    <div className="relative border border-[#009eff]/75 rounded-b-sm p-4 mt-2 mb-6">
+      <span className="absolute -top-2 left-3 bg-background px-2 text-xs text-[#009eff] tracking-widest uppercase font-mono">
+        System Execution
+      </span>
+      <Card className="p-1 bg-background border-none ring-0">
+        <CardHeader className="p-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-7xl font-black tracking-tighter text-foreground ">
+                {formatTime(timeRemainingMs)}
+              </div>
+              <Progress percent={progressPercent} />
             </div>
+            <Controls
+              status={status}
+              onStart={onStart}
+              onPause={onPause}
+              onResume={onResume}
+              onReset={onReset}
+              onClear={onClear}
+            />
           </div>
-          <Controls
-            status={status}
-            onStart={onStart}
-            onPause={onPause}
-            onResume={onResume}
-            onReset={onReset}
-            onClear={onClear}
-          />
-        </div>
-      </CardHeader>
-    </Card>
+        </CardHeader>
+      </Card>
+    </div>
+  );
+};
+
+const Progress = ({ percent = 0 }) => {
+  return (
+    <div className="bg-gray-600">
+      <div
+        className=" h-[4px] bg-[repeating-linear-gradient(90deg,#00e5ff_0,#00e5ff_6px,#1a1a1a_6px,#1a1a1a_9px)] transition-[width] duration-100 ease-linear"
+        style={{ width: `${percent}%` }}
+      ></div>
+    </div>
   );
 };
 

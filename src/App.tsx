@@ -1,5 +1,5 @@
 import "./app.css";
-import Phazer from "./Phazer";
+import Phazer from "./Phaser";
 
 function App() {
   return <Phazer />;

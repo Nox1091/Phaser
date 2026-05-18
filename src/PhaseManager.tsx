@@ -86,16 +86,21 @@ const PhaseManager = ({
         <span className="mx-2">·</span>
         <span>total {totalDuration} min</span>
       </div>
-      <div className="space-y-3 mb-8">
-        {phases.map((phase, index) => (
-          <PhaseCard
-            key={phase.id}
-            phase={phase}
-            index={index}
-            status={timerStatus}
-            onDelete={deletePhase}
-          />
-        ))}
+      <div className="relative border border-[#ec00ff]/75 rounded-b-sm p-4 mt-2 mb-6">
+        <span className="absolute -top-2 left-3 bg-background px-2 text-xs text-[#ec00ff] tracking-widest uppercase font-mono">
+          Phase Queue
+        </span>
+        <div className="space-y-2">
+          {phases.map((phase, index) => (
+            <PhaseCard
+              key={phase.id}
+              phase={phase}
+              index={index}
+              status={timerStatus}
+              onDelete={deletePhase}
+            />
+          ))}
+        </div>
       </div>
 
       <div className="border-2 border-dashed border-border rounded-xl p-4 text-center">
@@ -121,8 +126,6 @@ const PhaseCard = ({
   status: TimerStatus;
   onDelete: (id: number) => void;
 }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState("New Phase");
   const { dispatch } = usePhazer();
 
   const formatStatusDisplay = (status: string) => {
@@ -131,20 +134,21 @@ const PhaseCard = ({
     return status?.charAt(0).toUpperCase() + status?.slice(1);
   };
 
-  const toggleEdit = (event: React.MouseEvent<HTMLSpanElement>) => {
-    event.stopPropagation();
-    setIsEditing(!isEditing);
-  };
-
   const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setName(event.target.value);
-
     // TODO: We'll optimize this later so we're not re-rendering on every keystroke
-    dispatch({
-      type: "UPDATE_PHASE",
-      phaseId: phase.id,
-      name: event.target.value,
-    });
+    if (event.target.id === "phase-name-input")
+      dispatch({
+        type: "UPDATE_PHASE",
+        phaseId: phase.id,
+        name: event.target.value,
+      });
+
+    if (event.target.id === "phase-duration-input")
+      dispatch({
+        type: "UPDATE_PHASE",
+        phaseId: phase.id,
+        durationMins: parseInt(event.target.value),
+      });
   };
 
   return (
@@ -153,31 +157,32 @@ const PhaseCard = ({
       className={`bg-card border hover:border-opacity-80 transition-colors group h-10 p-0 ${getStatusBorderColor(phase.status)}`}
     >
       <CardContent className="p-1 flex items-center justify-between">
-        <div className="flex items-center gap-4 flex-1">
-          <span className="text-muted-foreground font-medium text-lg w-6 text-center">
+        <div className="flex items-center gap-4 grow shrink-0 basis-auto">
+          <span className="text-muted-foreground font-medium text-lg text-center">
             {index + 1}
           </span>
           <span className="text-foreground font-medium">
-            {isEditing ? (
-              <Input
-                autoFocus
-                onFocus={() => setIsEditing(true)}
-                onBlur={() => setIsEditing(false)}
-                className="border-none dark:bg-transparent focus-visible:ring-0"
-                placeholder={name}
-                onChange={handleInput}
-              />
-            ) : (
-              <span className={"w-[75%] truncate"} onClick={toggleEdit}>
-                {name}
-              </span>
-            )}
+            <Input
+              autoFocus
+              className="border-none dark:bg-transparent focus-visible:ring-0 align-end"
+              placeholder={"enter phase"}
+              onChange={handleInput}
+              tabIndex={index + 1}
+              id={"phase-name-input"}
+            />
           </span>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <span className="font-semibold">{phase.durationMins}</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center text-muted-foreground">
+            <Input
+              autoFocus
+              className="border-none dark:bg-transparent focus-visible:ring-0 text-right"
+              placeholder={"25"}
+              onChange={handleInput}
+              tabIndex={index + 2}
+              id={"phase-duration-input"}
+            />
             <span className="text-xs">min</span>
           </div>
           <Badge
